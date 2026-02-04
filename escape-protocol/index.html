@@ -27,17 +27,18 @@
     height: 100%;
     background: #000;
     overflow: hidden;
-    touch-action: none; /* Disables browser gestures like pull-to-refresh */
+    touch-action: none;
     position: fixed;
   }
 
   #canvas {
     display: block;
-    position: absolute;
+    position: fixed; /* Changed to fixed for visual viewport alignment */
     top: 0; left: 0;
     width: 100%; height: 100%;
     visibility: hidden;
     image-rendering: pixelated;
+    touch-action: none; /* Extra safety */
   }
 
   /* LOADER & START OVERLAY */
@@ -141,11 +142,55 @@
     const tapHint = document.getElementById("tapHint");
     let gameStarted = false;
 
+    // Enhanced resize using visualViewport (fixes touch offset in fullscreen on Android Chrome)
     function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+      let offsetLeft = 0;
+      let offsetTop = 0;
+
+      if (window.visualViewport) {
+        width = visualViewport.width;
+        height = visualViewport.height;
+        offsetLeft = visualViewport.offsetLeft;
+        offsetTop = visualViewport.offsetTop;
+      }
+
+      // CSS size and position
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      canvas.style.left = offsetLeft + 'px';
+      canvas.style.top = offsetTop + 'px';
+
+      // Canvas drawing buffer resolution (CSS pixels → matches touch coordinates)
+      canvas.width = width;
+      canvas.height = height;
+
+      // Optional: Use devicePixelRatio for sharper rendering (uncomment if game looks blurry)
+      // const dpr = window.devicePixelRatio || 1;
+      // canvas.width = Math.round(width * dpr);
+      // canvas.height = Math.round(height * dpr);
+      // canvas.style.imageRendering = 'pixelated'; // already in CSS
     }
+
+    // Listeners
     window.addEventListener('resize', resize);
+    if (window.visualViewport) {
+      visualViewport.addEventListener('resize', resize);
+      visualViewport.addEventListener('scroll', resize);
+    }
+
+    // Prevent unwanted touch gestures that can cause offsets
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+    }, { passive: false });
+
+    // Initial resize (in case loader shows before start)
+    resize();
 
     // --- FULLSCREEN & NAVIGATION ---
     function startGame() {
@@ -156,9 +201,11 @@
       
       if (rfs) {
         rfs.call(el).then(() => {
-          // Detect when user exits fullscreen (usually via back button)
           window.addEventListener('resize', detectBackNavigation);
-        }).catch(() => {});
+          resize(); // Ensure correct size after entering fullscreen
+        }).catch(err => {
+          console.error("Fullscreen failed:", err);
+        });
       }
 
       // Audio unlock for mobile
@@ -170,12 +217,11 @@
       gameStarted = true;
       resize();
 
-      // Push a state so the physical back button has a "page" to leave
+      // Push state to handle back button
       history.pushState({playing: true}, "");
     }
 
     function detectBackNavigation() {
-      // If we are no longer in fullscreen, the user used a back gesture/button
       const isFullscreen = document.fullscreenElement || document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement;
       
       if (gameStarted && !isFullscreen) {
@@ -184,19 +230,9 @@
       }
     }
 
-    // Secondary listener for browsers that fire popstate instead of resizing
     window.onpopstate = function() {
       window.location.href = "../index.html";
     };
-
-    // // --- MULTI-TOUCH STABILITY ---
-    // window.addEventListener('touchstart', e => {
-    //   if (e.target === canvas) e.preventDefault();
-    // }, { passive: false });
-    
-    // window.addEventListener('touchmove', e => {
-    //   if (e.target === canvas) e.preventDefault();
-    // }, { passive: false });
 
     // --- LOVE.JS ENGINE CONFIG ---
     var Module = {
