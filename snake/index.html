@@ -6,228 +6,259 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="format-detection" content="telephone=no">
 
 <title>SPACE SHOOTER</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
+  * {
+    box-sizing: border-box;
+    /* Disable selection and tap highlighting globally */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  overflow: hidden;
-  /* Critical for preventing browser gestures */
-  touch-action: none; 
-  position: fixed;
-}
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden; /* Strict overflow hiding */
+    touch-action: none; /* Disables browser gestures like double-tap zoom */
+    position: fixed; /* Locks the body in place */
+  }
 
-#canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  visibility: hidden;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-}
+  #canvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    visibility: hidden;
+    image-rendering: pixelated; /* Keeps pixel art sharp */
+  }
 
-/* Loader & Start Overlay */
-#loader {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(180deg, #050520, #000010);
-  color: white;
-  z-index: 1000;
-  transition: opacity 0.5s;
-}
+  /* --- UI LAYERS --- */
+  
+  #loader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #050510;
+    z-index: 100;
+    transition: opacity 0.5s;
+  }
 
-#logo {
-  font-family: 'Press Start 2P', monospace;
-  font-size: clamp(1rem, 5vw, 2rem);
-  margin-bottom: 40px;
-  color: #00ffe7;
-  text-shadow: 0 0 15px #00ffe7;
-}
+  #logo {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(20px, 5vw, 40px);
+    color: #00ffe7;
+    text-shadow: 0 0 10px #00ffe7;
+    margin-bottom: 30px;
+    text-align: center;
+  }
 
-#startBtn {
-  display: none; /* Shown via JS when loaded */
-  padding: 15px 30px;
-  font-family: 'Press Start 2P', monospace;
-  background: transparent;
-  color: #ff6b6b;
-  border: 4px solid #ff6b6b;
-  cursor: pointer;
-  font-size: 14px;
-  margin-top: 20px;
-  animation: blink 1s infinite;
-}
+  #barBox {
+    width: 60%;
+    max-width: 300px;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
 
-@keyframes blink {
-  50% { opacity: 0.5; }
-}
+  #bar {
+    width: 0%;
+    height: 100%;
+    background: #ff6b6b;
+    transition: width 0.2s;
+  }
 
-#barBox {
-  width: 70%;
-  max-width: 300px;
-  height: 10px;
-  background: #222;
-  border-radius: 5px;
-  overflow: hidden;
-}
+  #status {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    color: #888;
+    margin-bottom: 20px;
+  }
 
-#bar {
-  width: 0%;
-  height: 100%;
-  background: #00ffe7;
-}
+  /* The Start Button - Crucial for Fullscreen */
+  #startBtn {
+    display: none;
+    background: transparent;
+    color: #00ffe7;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    padding: 15px 30px;
+    border: 2px solid #00ffe7;
+    cursor: pointer;
+    text-transform: uppercase;
+    animation: pulse 1.5s infinite;
+  }
 
-#status {
-  margin-top: 15px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 8px;
-  color: #00ffe7;
-}
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+  }
 
-#rotatePrompt {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: #000;
-  color: white;
-  font-family: 'Press Start 2P', monospace;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  text-align: center;
-}
+  /* Rotate Prompt */
+  #rotatePrompt {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #000;
+    z-index: 999;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+  }
 
-@media (orientation: portrait) {
-  #rotatePrompt { display: flex; }
-}
+  /* Show rotate prompt only on portrait orientation */
+  @media screen and (orientation: portrait) {
+    #rotatePrompt { display: flex; }
+  }
 </style>
 </head>
 
 <body>
 
-<div id="rotatePrompt">
-  <div style="font-size: 40px; margin-bottom: 20px;">📱↻</div>
-  <div style="font-size: 10px;">ROTATE TO LANDSCAPE</div>
-</div>
+  <div id="rotatePrompt">
+    <div style="font-size: 40px; margin-bottom: 20px;">↻</div>
+    <div style="font-size: 12px; line-height: 1.5;">PLEASE ROTATE<br>DEVICE</div>
+  </div>
 
-<div id="loader">
-  <div id="logo">SPACE SHOOTER</div>
-  <div id="barBox"><div id="bar"></div></div>
-  <div id="status">LOADING...</div>
-  <button id="startBtn">TAP TO START</button>
-</div>
+  <div id="loader">
+    <div id="logo">SPACE SHOOTER</div>
+    <div id="status">DOWNLOADING...</div>
+    <div id="barBox"><div id="bar"></div></div>
+    <button id="startBtn">TAP TO Apo</button>
+  </div>
 
-<canvas id="canvas"></canvas>
+  <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
-<script>
-// 1. Prevent all default browser gestures (scrolling, zooming, pull-to-refresh)
-document.addEventListener('touchstart', (e) => {
-    if (e.touches.length > 1) e.preventDefault(); 
-}, { passive: false });
+  <script>
+    var canvas = document.getElementById("canvas");
+    var loader = document.getElementById("loader");
+    var startBtn = document.getElementById("startBtn");
 
-document.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-}, { passive: false });
-
-// 2. Fullscreen Logic
-const loader = document.getElementById('loader');
-const startBtn = document.getElementById('startBtn');
-const canvas = document.getElementById('canvas');
-
-function goFullScreen() {
-    const docEl = document.documentElement;
-    const requestMethod = docEl.requestFullscreen || 
-                          docEl.webkitRequestFullScreen || 
-                          docEl.mozRequestFullScreen || 
-                          docEl.msRequestFullscreen;
-
-    if (requestMethod) {
-        requestMethod.call(docEl);
+    // --- 1. RESIZE HANDLING ---
+    function resizeCanvas() {
+        // Use clientWidth/Height to get actual visible area
+        canvas.width = document.documentElement.clientWidth;
+        canvas.height = document.documentElement.clientHeight;
     }
+    window.addEventListener('resize', resizeCanvas);
     
-    // Unlock Audio
-    if (window.AudioContext || window.webkitAudioContext) {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // Also resize when entering/exiting fullscreen
+    document.addEventListener('fullscreenchange', resizeCanvas);
+    document.addEventListener('webkitfullscreenchange', resizeCanvas);
+
+    // --- 2. FULLSCREEN TRIGGER ---
+    function requestFullScreen() {
+      var el = document.documentElement;
+      var request = el.requestFullscreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      
+      if(request) {
+        request.call(el).catch(err => {
+          console.log("Fullscreen blocked or not supported", err);
+        });
+      }
+      
+      // Prepare Audio Context (Mobile requires user interaction)
+      if (window.AudioContext || window.webkitAudioContext) {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
         ctx.resume();
+      }
+      
+      // Hide loader
+      loader.style.opacity = "0";
+      setTimeout(function() {
+        loader.style.display = "none";
+        canvas.style.visibility = "visible";
+        resizeCanvas();
+      }, 500);
     }
 
-    loader.style.opacity = '0';
-    setTimeout(() => {
-        loader.style.display = 'none';
-        canvas.style.visibility = 'visible';
-        resizeCanvas();
-    }, 500);
-}
+    startBtn.addEventListener('click', requestFullScreen);
+    startBtn.addEventListener('touchend', function(e) {
+      e.preventDefault(); // Prevent phantom clicks
+      requestFullScreen();
+    });
 
-startBtn.addEventListener('click', goFullScreen);
-startBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    goFullScreen();
-});
+    // --- 3. CRITICAL INPUT HANDLING ---
+    // This fixes the "Multi-touch not working" and "URL bar navigation" issues.
+    
+    function preventDefaultTouch(e) {
+      // Allow the start button to work
+      if (e.target.id === 'startBtn') return;
+      
+      // For the canvas, prevent browser default (scrolling/zooming)
+      // BUT let the event bubble so Love.js can read it.
+      if (e.target === canvas) {
+        e.preventDefault();
+      }
+    }
 
-// 3. Game Module Config
-var Module = {
-    arguments: ["./game.love"],
-    INITIAL_MEMORY: 33554432,
-    canvas: canvas,
-    setStatus: function(text) {
-        const status = document.getElementById("status");
-        const barBox = document.getElementById("barBox");
+    // Passive: false is required to use preventDefault
+    window.addEventListener('touchstart', preventDefaultTouch, { passive: false });
+    window.addEventListener('touchmove', preventDefaultTouch, { passive: false });
+    window.addEventListener('touchend', preventDefaultTouch, { passive: false });
+
+    // --- 4. LOVE.JS CONFIGURATION ---
+    var Module = {
+      arguments: ["./game.love"],
+      INITIAL_MEMORY: 33554432, // 32MB
+      canvas: canvas,
+      
+      setStatus: function(text) {
+        var status = document.getElementById("status");
+        var barBox = document.getElementById("barBox");
+        
         if (status) status.textContent = text;
         
-        // When text is empty, it means LÖVE is ready
-        if (!text || text === "") {
-            status.style.display = "none";
-            barBox.style.display = "none";
-            startBtn.style.display = "block"; // Show the fullscreen trigger
+        // If text is empty, the game engine is ready
+        if (!text) {
+          if(barBox) barBox.style.display = "none";
+          if(status) status.style.display = "none";
+          startBtn.style.display = "block"; // Show the start button now
         }
-    },
-    monitorRunDependencies: function(left) {
-        const total = this.totalDependencies || 0;
+      },
+      
+      monitorRunDependencies: function(left) {
+        var total = this.totalDependencies || 0;
         this.totalDependencies = Math.max(total, left);
-        const percent = total ? Math.round(((this.totalDependencies - left) / this.totalDependencies) * 100) : 0;
-        const bar = document.getElementById("bar");
-        if (bar) bar.style.width = percent + "%";
-    }
-};
-
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
-window.addEventListener("resize", resizeCanvas);
-window.onerror = () => { document.getElementById("status").textContent = "LOAD ERROR"; };
-
-function applicationLoad() { Love(Module); }
-</script>
-
-<script src="game.js"></script>
-<script async src="love.js" onload="applicationLoad()"></script>
+        
+        var current = total - left;
+        var percentage = total ? (current / total) * 100 : 0;
+        
+        var bar = document.getElementById("bar");
+        if(bar) bar.style.width = percentage + "%";
+      }
+    };
+    
+    // Safety check for errors
+    window.onerror = function() {
+      document.getElementById("status").textContent = "ERROR RELOAD PAGE";
+      document.getElementById("status").style.color = "red";
+    };
+  </script>
+  
+  <script src="game.js"></script>
+  <script async src="love.js" onload="Love(Module)"></script>
 
 </body>
 </html>
