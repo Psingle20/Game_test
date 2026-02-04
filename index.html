@@ -267,6 +267,110 @@ footer a {
   .stat-number {
     font-size: 1.2rem;
   }
+
+  header {
+    padding: 12px;
+  }
+
+  .tagline {
+    font-size: 0.7rem;
+  }
+
+  .categories {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .category-tag {
+    padding: 6px 14px;
+    font-size: 0.75rem;
+  }
+
+  .search-container {
+    padding: 10px 15px;
+  }
+
+  .games-section {
+    padding: 10px 12px;
+  }
+
+  .section-title {
+    font-size: 0.8rem;
+    margin-bottom: 12px;
+  }
+
+  footer {
+    padding: 20px 15px;
+  }
+}
+
+@media (max-width: 380px) {
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .game-icon {
+    font-size: 2rem;
+  }
+
+  .game-title {
+    font-size: 0.65rem;
+  }
+
+  .stat-number {
+    font-size: 1rem;
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .games-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+/* Landscape phones */
+@media (max-height: 500px) and (orientation: landscape) {
+  header {
+    padding: 8px;
+    position: relative;
+  }
+
+  .tagline {
+    display: none;
+  }
+
+  .stats-bar {
+    padding: 8px;
+  }
+
+  .categories {
+    padding: 8px;
+  }
+
+  .games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .game-icon {
+    font-size: 2rem;
+  }
+
+  footer {
+    padding: 15px;
+  }
 }
 
 /* Animation */
@@ -360,7 +464,7 @@ footer a {
     <!-- Game 1: Escape Protocol -->
     <a href="./escape-protocol/index.html" class="game-card" data-category="educational action">
       <span class="new-badge">NEW</span>
-      <div class="game-icon">⭐</div>
+      <div class="game-icon">🚀</div>
       <div class="game-title">ESCAPE PROTOCOL</div>
       <div class="game-category">Educational</div>
     </a>
@@ -368,8 +472,8 @@ footer a {
     <!-- Game 2: Snake -->
     <a href="./snake/index.html" class="game-card" data-category="arcade">
       <span class="hot-badge">🔥 HOT</span>
-      <div class="game-icon">🚀</div>
-      <div class="game-title">SPACE ARCADE</div>
+      <div class="game-icon">🐍</div>
+      <div class="game-title">SNAKE</div>
       <div class="game-category">Arcade</div>
     </a>
     
@@ -404,7 +508,7 @@ footer a {
 <!-- Footer -->
 <footer>
   <p>Made with ❤️ by Claude Opus 4.5 | <a href="#">About</a> | <a href="#">Contact</a></p>
-  <p style="margin-top: 10px;">© 2026 GameHub. All games run in your browser - no downloads needed!</p>
+  <p style="margin-top: 10px;">© 2025 GameHub. All games run in your browser - no downloads needed!</p>
 </footer>
 
 <script>
