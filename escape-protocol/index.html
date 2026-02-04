@@ -12,17 +12,9 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
-<!--
-  DO NOT load love.css — it fights fullscreen styles
-  (sets background-color: light blue, background-image, body padding, canvas visibility)
--->
+<!-- DO NOT load love.css -->
 
 <style>
-/*
-  Every rule uses !important to guarantee love.css (if somehow loaded)
-  cannot override anything.
-*/
-
 *, *::before, *::after {
   box-sizing: border-box !important;
   margin: 0 !important;
@@ -60,23 +52,6 @@ body {
   bottom: 0 !important;
 }
 
-/* 
-  CANVAS — THE CRITICAL COORDINATE FIX:
-  
-  Problem on self-hosted sites:
-  Old code did canvas.width = window.innerWidth which changes the
-  INTERNAL drawing resolution. love.js uses canvas.width/height for
-  coordinate mapping. When CSS display size != canvas attribute size,
-  touch coordinates are WRONG.
-  
-  Why itch.io works:
-  itch.io uses an iframe + Fullscreen API. The iframe constrains the
-  canvas perfectly so CSS and internal sizes match.
-  
-  Our fix:
-  Only set CSS display size. Never touch canvas.width / canvas.height.
-  Let love.js set those internally to match its virtual resolution.
-*/
 #canvas {
   position: fixed !important;
   top: 0 !important;
@@ -97,20 +72,93 @@ body {
   image-rendering: crisp-edges !important;
 }
 
-/* No visible buttons — fullscreen is default, back = hardware button */
+/* ============================================
+   SPLASH SCREEN (like itch.io "Run Game")
+   Shows BEFORE anything loads.
+   Tapping RUN → enters fullscreen → loads game
+   ============================================ */
+#splash {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, #0b0f1a, #05070d);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
 
-/* Loader */
+#splash .game-icon {
+  font-size: clamp(3rem, 15vw, 5rem);
+  margin-bottom: 15px;
+}
+
+#splash .game-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.7rem, 3.5vw, 1.2rem);
+  color: #00ffe7;
+  text-shadow: 0 0 8px #00ffe7, 0 0 16px #00b3ff;
+  margin-bottom: 8px;
+}
+
+#splash .game-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.4rem, 2vw, 0.6rem);
+  color: #ff9900;
+  margin-bottom: 40px;
+}
+
+#runBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.7rem, 3vw, 1rem);
+  color: #000;
+  background: #00ffe7;
+  border: none;
+  padding: 18px 50px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 20px rgba(0,255,231,0.4), 0 0 40px rgba(0,255,231,0.2);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+#runBtn:hover {
+  background: #fff;
+  box-shadow: 0 0 30px rgba(255,255,255,0.5);
+}
+
+#runBtn:active {
+  transform: scale(0.95);
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0,255,231,0.4), 0 0 40px rgba(0,255,231,0.2); }
+  50% { box-shadow: 0 0 30px rgba(0,255,231,0.6), 0 0 60px rgba(0,255,231,0.3); }
+}
+
+#splash .hint {
+  font-size: clamp(0.4rem, 1.8vw, 0.55rem);
+  color: #555;
+  margin-top: 25px;
+  font-family: 'Press Start 2P', monospace;
+}
+
+/* Loader (shows AFTER run is pressed) */
 #loader {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background: linear-gradient(180deg, #0b0f1a, #05070d) !important;
   color: white;
-  z-index: 1000;
+  z-index: 2000;
 }
 
 #logo {
@@ -156,7 +204,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: 5000;
   text-align: center;
   padding: 20px !important;
 }
@@ -168,7 +216,6 @@ body {
   #rotatePrompt { display: flex !important; }
 }
 
-/* Kill any love.css footer */
 footer { display: none !important; }
 </style>
 </head>
@@ -180,54 +227,93 @@ footer { display: none !important; }
   <div class="text">Please rotate your device<br>to landscape mode</div>
 </div>
 
+<!-- SPLASH — shown first, nothing loads until user taps RUN -->
+<div id="splash">
+  <div class="game-icon">🚀</div>
+  <div class="game-name">ESCAPE PROTOCOL</div>
+  <div class="game-sub">The AI Planet</div>
+  <button id="runBtn" onclick="runGame()">▶ RUN GAME</button>
+  <div class="hint">Game will enter fullscreen</div>
+</div>
+
+<!-- LOADER — shown while game downloads -->
 <div id="loader">
   <div id="logo">🚀 ESCAPE PROTOCOL<br><span style="font-size:0.6em;color:#ff9900">The AI Planet</span></div>
   <div id="barBox"><div id="bar"></div></div>
-  <div id="status">Downloading...</div>
+  <div id="status">Loading...</div>
 </div>
 
 <canvas id="canvas" style="visibility:hidden;"></canvas>
 
 <script>
-// === FULLSCREEN — AUTO ON LOAD (DEFAULT) ===
+// ============================================================
+// RUN GAME — Like itch.io
+// 1. User taps "RUN GAME"
+// 2. That tap = user gesture → enter fullscreen
+// 3. Hide splash → show loader
+// 4. Start downloading game files
+// 5. When done → show canvas
+// ============================================================
+
+var gameStarted = false;
+
+function runGame() {
+  if (gameStarted) return;
+  gameStarted = true;
+
+  // 1. Enter fullscreen (user gesture from button tap)
+  goFullscreen();
+
+  // 2. Unlock audio (iOS needs gesture)
+  unlockAudio();
+
+  // 3. Hide splash, show loader
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('loader').style.display = 'flex';
+
+  // 4. Now load the game scripts
+  // game.js contains the game data
+  var gameScript = document.createElement('script');
+  gameScript.src = 'game.js';
+  gameScript.onload = function() {
+    // love.js is the engine
+    var loveScript = document.createElement('script');
+    loveScript.src = 'love.js';
+    loveScript.onload = function() {
+      applicationLoad();
+    };
+    document.body.appendChild(loveScript);
+  };
+  document.body.appendChild(gameScript);
+}
+
+
+// === FULLSCREEN ===
 function goFullscreen() {
   var el = document.documentElement;
   var isFs = document.fullscreenElement || document.webkitFullscreenElement;
-  if (isFs) return; // already fullscreen
+  if (isFs) return;
   var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
   if (rfs) {
     rfs.call(el).then(function() {
       setTimeout(resizeCanvas, 200);
       setTimeout(resizeCanvas, 500);
-    }).catch(function(e) { console.log('Fullscreen denied:', e); });
+    }).catch(function(e) { console.log('Fullscreen request:', e); });
   }
 }
 
-// Auto-fullscreen on first touch (mobile needs user gesture)
-document.addEventListener('touchstart', function() { goFullscreen(); }, { once: true });
-// Also try on click for desktop
-document.addEventListener('click', function() { goFullscreen(); }, { once: true });
+document.addEventListener('fullscreenchange', function() { setTimeout(resizeCanvas, 200); });
+document.addEventListener('webkitfullscreenchange', function() { setTimeout(resizeCanvas, 200); });
 
-// Re-enter fullscreen after any exit (keeps it persistent)
-document.addEventListener('fullscreenchange', function() {
-  setTimeout(resizeCanvas, 200);
-});
-document.addEventListener('webkitfullscreenchange', function() {
-  setTimeout(resizeCanvas, 200);
-});
 
-// === HARDWARE BACK BUTTON → REDIRECT TO HUB ===
-// Push a fake history entry so pressing back doesn't leave the site
+// === HARDWARE BACK BUTTON → MAIN HUB ===
 history.pushState({ game: true }, '');
 window.addEventListener('popstate', function(e) {
-  // User pressed back button → go to main menu
   window.location.href = '../index.html';
 });
 
 
-// === CANVAS RESIZE — COORDINATE FIX ===
-// ONLY set CSS display size. NEVER touch canvas.width/canvas.height.
-// love.js sets those internally to match its virtual resolution.
+// === CANVAS RESIZE — CSS ONLY ===
 function resizeCanvas() {
   var canvas = document.getElementById("canvas");
   if (!canvas) return;
@@ -241,11 +327,9 @@ function resizeCanvas() {
     h = window.innerHeight;
   }
 
-  // CSS size only — DO NOT set canvas.width or canvas.height
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
 
-  // Force GPU repaint
   canvas.style.display = 'none';
   canvas.offsetHeight;
   canvas.style.display = 'block';
@@ -265,14 +349,15 @@ window.addEventListener("orientationchange", function() {
 });
 
 
-// === TOUCH / GESTURE PREVENTION ===
-document.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
-document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
-document.addEventListener('touchend', function(e) { e.preventDefault(); }, { passive: false });
+// === TOUCH PREVENTION (only after game starts) ===
+function preventTouch(e) { if (gameStarted) e.preventDefault(); }
+document.addEventListener('touchstart', preventTouch, { passive: false });
+document.addEventListener('touchmove', preventTouch, { passive: false });
+document.addEventListener('touchend', preventTouch, { passive: false });
 document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
 document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
 document.addEventListener('gestureend', function(e) { e.preventDefault(); });
-document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+document.addEventListener('contextmenu', function(e) { if (gameStarted) e.preventDefault(); });
 
 var lastTouchEnd = 0;
 document.addEventListener('touchend', function(e) {
@@ -286,7 +371,7 @@ window.addEventListener("keydown", function(e) {
 });
 
 
-// === AUDIO UNLOCK (iOS requires gesture) ===
+// === AUDIO UNLOCK ===
 var audioUnlocked = false;
 function unlockAudio() {
   if (audioUnlocked) return;
@@ -301,15 +386,12 @@ function unlockAudio() {
   } catch(e) {}
   audioUnlocked = true;
 }
-document.addEventListener('touchstart', unlockAudio, { passive: true });
-document.addEventListener('click', unlockAudio, { passive: true });
 
 
 // === LOVE.JS MODULE ===
 var Module = {
   arguments: ["./game.love"],
   INITIAL_MEMORY: 67108864,
-
   canvas: (function() { return document.getElementById("canvas"); })(),
 
   setStatus: function(text) {
@@ -322,6 +404,8 @@ var Module = {
       if (canvas) {
         canvas.style.visibility = "visible";
         resizeCanvas();
+        // Re-enter fullscreen in case it dropped
+        goFullscreen();
       }
     }
   },
@@ -335,14 +419,13 @@ var Module = {
   }
 };
 
-Module.setStatus("Downloading...");
-window.onerror = function() { Module.setStatus("Error - See Console"); };
 function applicationLoad() { Love(Module); }
+
 resizeCanvas();
 </script>
 
-<script src="game.js"></script>
-<script async src="love.js" onload="applicationLoad()"></script>
+<!-- NOTE: game.js and love.js are loaded DYNAMICALLY in runGame() -->
+<!-- They do NOT load until user presses RUN GAME -->
 
 </body>
 </html>

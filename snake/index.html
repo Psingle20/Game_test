@@ -12,8 +12,6 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
-<!-- DO NOT load love.css -->
-
 <style>
 *, *::before, *::after {
   box-sizing: border-box !important;
@@ -72,19 +70,76 @@ body {
   image-rendering: crisp-edges !important;
 }
 
-/* No visible buttons — fullscreen is default, back = hardware button */
+/* SPLASH */
+#splash {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, #0a1f0a, #051505);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
 
+#splash .game-icon {
+  font-size: clamp(3rem, 15vw, 5rem);
+  margin-bottom: 15px;
+}
+
+#splash .game-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.9rem, 4vw, 1.5rem);
+  color: #4ade80;
+  text-shadow: 0 0 8px #4ade80, 0 0 16px #22c55e;
+  margin-bottom: 40px;
+}
+
+#runBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.7rem, 3vw, 1rem);
+  color: #000;
+  background: #4ade80;
+  border: none;
+  padding: 18px 50px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 20px rgba(74,222,128,0.4), 0 0 40px rgba(74,222,128,0.2);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+#runBtn:hover { background: #fff; }
+#runBtn:active { transform: scale(0.95); }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(74,222,128,0.4), 0 0 40px rgba(74,222,128,0.2); }
+  50% { box-shadow: 0 0 30px rgba(74,222,128,0.6), 0 0 60px rgba(74,222,128,0.3); }
+}
+
+#splash .hint {
+  font-size: clamp(0.4rem, 1.8vw, 0.55rem);
+  color: #555;
+  margin-top: 25px;
+  font-family: 'Press Start 2P', monospace;
+}
+
+/* Loader */
 #loader {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background: linear-gradient(180deg, #0a1f0a, #051505) !important;
   color: white;
-  z-index: 1000;
+  z-index: 2000;
 }
 
 #logo {
@@ -129,7 +184,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: 5000;
   text-align: center;
   padding: 20px !important;
 }
@@ -152,16 +207,43 @@ footer { display: none !important; }
   <div class="text">Please rotate your device<br>to landscape mode</div>
 </div>
 
+<div id="splash">
+  <div class="game-icon">🐍</div>
+  <div class="game-name">SNAKE</div>
+  <button id="runBtn" onclick="runGame()">▶ RUN GAME</button>
+  <div class="hint">Game will enter fullscreen</div>
+</div>
+
 <div id="loader">
   <div id="logo">🐍 SNAKE</div>
   <div id="barBox"><div id="bar"></div></div>
-  <div id="status">Downloading...</div>
+  <div id="status">Loading...</div>
 </div>
 
 <canvas id="canvas" style="visibility:hidden;"></canvas>
 
 <script>
-// === FULLSCREEN — AUTO ON LOAD (DEFAULT) ===
+var gameStarted = false;
+
+function runGame() {
+  if (gameStarted) return;
+  gameStarted = true;
+  goFullscreen();
+  unlockAudio();
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('loader').style.display = 'flex';
+
+  var gameScript = document.createElement('script');
+  gameScript.src = 'game.js';
+  gameScript.onload = function() {
+    var loveScript = document.createElement('script');
+    loveScript.src = 'love.js';
+    loveScript.onload = function() { applicationLoad(); };
+    document.body.appendChild(loveScript);
+  };
+  document.body.appendChild(gameScript);
+}
+
 function goFullscreen() {
   var el = document.documentElement;
   var isFs = document.fullscreenElement || document.webkitFullscreenElement;
@@ -171,28 +253,21 @@ function goFullscreen() {
     rfs.call(el).then(function() {
       setTimeout(resizeCanvas, 200);
       setTimeout(resizeCanvas, 500);
-    }).catch(function(e) { console.log('Fullscreen denied:', e); });
+    }).catch(function(e) { console.log('Fullscreen request:', e); });
   }
 }
-
-document.addEventListener('touchstart', function() { goFullscreen(); }, { once: true });
-document.addEventListener('click', function() { goFullscreen(); }, { once: true });
 
 document.addEventListener('fullscreenchange', function() { setTimeout(resizeCanvas, 200); });
 document.addEventListener('webkitfullscreenchange', function() { setTimeout(resizeCanvas, 200); });
 
-// === HARDWARE BACK BUTTON → REDIRECT TO HUB ===
 history.pushState({ game: true }, '');
 window.addEventListener('popstate', function(e) {
   window.location.href = '../index.html';
 });
 
-
-// === CANVAS RESIZE — CSS ONLY, NO canvas.width/height ===
 function resizeCanvas() {
   var canvas = document.getElementById("canvas");
   if (!canvas) return;
-
   var w, h;
   if (window.visualViewport) {
     w = window.visualViewport.width;
@@ -201,10 +276,8 @@ function resizeCanvas() {
     w = window.innerWidth;
     h = window.innerHeight;
   }
-
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
-
   canvas.style.display = 'none';
   canvas.offsetHeight;
   canvas.style.display = 'block';
@@ -223,15 +296,14 @@ window.addEventListener("orientationchange", function() {
   setTimeout(resizeCanvas, 1000);
 });
 
-
-// === TOUCH / GESTURE PREVENTION ===
-document.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
-document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
-document.addEventListener('touchend', function(e) { e.preventDefault(); }, { passive: false });
+function preventTouch(e) { if (gameStarted) e.preventDefault(); }
+document.addEventListener('touchstart', preventTouch, { passive: false });
+document.addEventListener('touchmove', preventTouch, { passive: false });
+document.addEventListener('touchend', preventTouch, { passive: false });
 document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
 document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
 document.addEventListener('gestureend', function(e) { e.preventDefault(); });
-document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+document.addEventListener('contextmenu', function(e) { if (gameStarted) e.preventDefault(); });
 
 var lastTouchEnd = 0;
 document.addEventListener('touchend', function(e) {
@@ -244,8 +316,6 @@ window.addEventListener("keydown", function(e) {
   if ([32, 37, 38, 39, 40].includes(e.keyCode)) e.preventDefault();
 });
 
-
-// === AUDIO UNLOCK ===
 var audioUnlocked = false;
 function unlockAudio() {
   if (audioUnlocked) return;
@@ -260,17 +330,11 @@ function unlockAudio() {
   } catch(e) {}
   audioUnlocked = true;
 }
-document.addEventListener('touchstart', unlockAudio, { passive: true });
-document.addEventListener('click', unlockAudio, { passive: true });
 
-
-// === LOVE.JS MODULE ===
 var Module = {
   arguments: ["./game.love"],
   INITIAL_MEMORY: 67108864,
-
   canvas: (function() { return document.getElementById("canvas"); })(),
-
   setStatus: function(text) {
     var status = document.getElementById("status");
     if (status) status.textContent = text || "Starting...";
@@ -281,10 +345,10 @@ var Module = {
       if (canvas) {
         canvas.style.visibility = "visible";
         resizeCanvas();
+        goFullscreen();
       }
     }
   },
-
   monitorRunDependencies: function(left) {
     var total = this.totalDependencies || 0;
     this.totalDependencies = Math.max(total, left);
@@ -294,14 +358,9 @@ var Module = {
   }
 };
 
-Module.setStatus("Downloading...");
-window.onerror = function() { Module.setStatus("Error - See Console"); };
 function applicationLoad() { Love(Module); }
 resizeCanvas();
 </script>
-
-<script src="game.js"></script>
-<script async src="love.js" onload="applicationLoad()"></script>
 
 </body>
 </html>
