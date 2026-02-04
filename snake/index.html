@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#000000">
   <meta name="format-detection" content="telephone=no">
 
-  <title>SPACE SHOOTER - GameHub</title>
+  <title>SPACE SHOOTER</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
@@ -47,29 +47,6 @@
       transform: translateZ(0);
     }
 
-    /* Back Button */
-    #backBtn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      background: rgba(0,0,0,0.7);
-      color: #00ffe7;
-      border: 2px solid #00ffe7;
-      padding: 8px 15px;
-      border-radius: 20px;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      text-decoration: none;
-      transition: all 0.3s;
-      touch-action: manipulation;
-    }
-
-    #backBtn:hover {
-      background: #00ffe7;
-      color: #000;
-    }
-
     /* Loader */
     #loader {
       position: fixed;
@@ -86,17 +63,18 @@
 
     #logo {
       font-family: 'Press Start 2P', monospace;
-      font-size: clamp(1rem, 6vw, 2rem);
-      letter-spacing: 2px;
-      margin-bottom: 40px;
+      font-size: clamp(1.2rem, 7vw, 2.5rem);
+      letter-spacing: 3px;
+      margin-bottom: 50px;
       color: #00ffe7;
       text-shadow: 0 0 15px #00ffe7, 0 0 30px #00b3ff;
+      text-align: center;
     }
 
     #barBox {
-      width: 80%;
-      max-width: 450px;
-      height: 20px;
+      width: 85%;
+      max-width: 500px;
+      height: 22px;
       border-radius: 20px;
       background: #222;
       overflow: hidden;
@@ -106,14 +84,14 @@
       width: 0%;
       height: 100%;
       background: linear-gradient(90deg, #00ffe7, #ff6b6b);
-      transition: width 0.25s ease;
+      transition: width 0.3s ease;
     }
 
     #status {
-      margin-top: 20px;
-      opacity: 0.85;
+      margin-top: 25px;
+      opacity: 0.9;
       font-family: 'Press Start 2P', monospace;
-      font-size: clamp(0.5rem, 3vw, 0.8rem);
+      font-size: clamp(0.6rem, 3.5vw, 1rem);
     }
 
     .fadeOut {
@@ -125,77 +103,69 @@
       to { opacity: 0; visibility: hidden; }
     }
 
-    /* Fullscreen prompt overlay */
-    #fsPrompt {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      color: #00ffe7;
-      font-family: 'Press Start 2P', monospace;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1500;
-      text-align: center;
-      padding: 30px;
-      font-size: clamp(0.9rem, 5vw, 1.4rem);
-      line-height: 1.6;
-      touch-action: manipulation;
-      cursor: pointer;
-    }
-
-    #fsPrompt.hidden { display: none; }
-
+    /* Force Landscape Only - Hide everything in portrait */
     #rotatePrompt {
-      display: none;
+      display: flex;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.95);
+      background: rgba(0,0,0,0.98);
       color: white;
       font-family: 'Press Start 2P', monospace;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      z-index: 2000;
+      z-index: 3000;
       text-align: center;
-      padding: 30px;
+      padding: 40px;
       touch-action: none;
     }
 
-    #rotatePrompt .icon { font-size: 80px; margin-bottom: 30px; }
-    #rotatePrompt .text { font-size: clamp(0.8rem, 4vw, 1.2rem); line-height: 1.7; }
+    #rotatePrompt .icon { 
+      font-size: 100px; 
+      margin-bottom: 40px; 
+      animation: rotate 4s linear infinite;
+    }
 
+    #rotatePrompt .text { 
+      font-size: clamp(1rem, 5vw, 1.8rem); 
+      line-height: 1.6; 
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Hide game content in portrait */
     @media (orientation: portrait) {
-      #rotatePrompt { display: flex; }
+      #loader, #canvas { display: none !important; }
+    }
+
+    @media (orientation: landscape) {
+      #rotatePrompt { display: none !important; }
     }
   </style>
 </head>
 
 <body>
 
-<a href="../index.html" id="backBtn">← MENU</a>
-
+<!-- Force Landscape Prompt (covers everything in portrait) -->
 <div id="rotatePrompt">
   <div class="icon">📱↻</div>
-  <div class="text">Rotate to LANDSCAPE<br>for best gameplay</div>
+  <div class="text">ROTATE TO LANDSCAPE<br>FOR FULLSCREEN GAMEPLAY</div>
 </div>
 
+<!-- Loader -->
 <div id="loader">
   <div id="logo">🚀 SPACE SHOOTER</div>
   <div id="barBox"><div id="bar"></div></div>
   <div id="status">Loading assets...</div>
 </div>
 
-<!-- Fullscreen prompt (shows briefly after load on mobile) -->
-<div id="fsPrompt" class="hidden">
-  Tap anywhere to enter<br>FULLSCREEN mode<br>(recommended for mobile)
-</div>
-
 <canvas id="canvas"></canvas>
 
 <script>
-// === Aggressive touch blocking ===
+// === Ultra-aggressive touch blocking ===
 const blockOptions = { passive: false, capture: true };
 
 function blockDefault(e) {
@@ -210,7 +180,7 @@ function blockDefault(e) {
 document.addEventListener('contextmenu', e => e.preventDefault(), blockOptions);
 document.addEventListener('dblclick', e => e.preventDefault(), blockOptions);
 
-// === Resize canvas to true full viewport ===
+// === Canvas full viewport resize ===
 function resizeCanvas() {
   const canvas = document.getElementById('canvas');
   if (!canvas) return;
@@ -221,63 +191,49 @@ function resizeCanvas() {
 }
 
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 300));
 
-// === Fullscreen logic ===
-let fullscreenTriggered = false;
+// === AUTO FULLSCREEN - Aggressive default activation ===
+let fullscreenActive = false;
+let attempts = 0;
+const MAX_ATTEMPTS = 8;
 
-function goFullscreen() {
-  if (fullscreenTriggered) return;
+function enterFullscreen() {
+  if (fullscreenActive || attempts >= MAX_ATTEMPTS) return;
+  attempts++;
+
   const elem = document.documentElement;
+  const methods = [
+    elem.requestFullscreen,
+    elem.webkitRequestFullscreen,
+    elem.mozRequestFullScreen,
+    elem.msRequestFullscreen
+  ];
 
-  const requestMethod = 
-    elem.requestFullscreen ||
-    elem.webkitRequestFullscreen ||
-    elem.mozRequestFullScreen ||
-    elem.msRequestFullscreen;
-
-  if (requestMethod) {
-    requestMethod.call(elem).then(() => {
-      fullscreenTriggered = true;
-      console.log("Fullscreen activated");
-      hideFsPrompt();
-    }).catch(err => {
-      console.warn("Fullscreen failed:", err);
-      showFsPrompt(); // fallback prompt
-    });
-  } else {
-    console.warn("Fullscreen API not supported");
-    showFsPrompt();
+  for (const method of methods) {
+    if (method) {
+      method.call(elem).then(() => {
+        fullscreenActive = true;
+        console.log('Fullscreen activated automatically');
+      }).catch(err => {
+        console.log('Fullscreen attempt failed:', err);
+      });
+      break;
+    }
   }
+
+  // Retry on resize/orientation (very useful when bars reappear)
+  setTimeout(enterFullscreen, 800);
 }
 
-function showFsPrompt() {
-  const prompt = document.getElementById('fsPrompt');
-  if (prompt) {
-    prompt.classList.remove('hidden');
-    // Auto-hide after 8 seconds if ignored
-    setTimeout(hideFsPrompt, 8000);
-  }
+// Start auto-fullscreen attempts when game becomes visible
+function startAutoFullscreen() {
+  enterFullscreen();
+  window.addEventListener('resize', enterFullscreen);
+  window.addEventListener('orientationchange', () => setTimeout(enterFullscreen, 400));
 }
 
-function hideFsPrompt() {
-  const prompt = document.getElementById('fsPrompt');
-  if (prompt) prompt.classList.add('hidden');
-}
-
-// Trigger on first touch after game starts
-document.addEventListener('touchstart', function fsHandler(e) {
-  if (!fullscreenTriggered && document.getElementById('loader').classList.contains('fadeOut')) {
-    goFullscreen();
-    // Remove listener after first attempt
-    document.removeEventListener('touchstart', fsHandler);
-  }
-}, { passive: true });
-
-// Also allow tapping the prompt itself
-document.getElementById('fsPrompt')?.addEventListener('touchstart', goFullscreen, { passive: true });
-
-// === Audio unlock ===
+// === Audio unlock (required on mobile) ===
 let audioUnlocked = false;
 function unlockAudio() {
   if (audioUnlocked) return;
@@ -295,19 +251,23 @@ function unlockAudio() {
 document.addEventListener('touchstart', unlockAudio, { passive: true });
 document.addEventListener('touchend', unlockAudio, { passive: true });
 
-// === Prevent keyboard navigation ===
+// Prevent accidental scrolling/zoom
 window.addEventListener('keydown', e => {
   if ([32, 37, 38, 39, 40].includes(e.keyCode)) e.preventDefault();
 }, { passive: false });
 
-// === LÖVE.js Module ===
+// Initial resize
+resizeCanvas();
+
+// === LÖVE.js Setup with Auto-Fullscreen Trigger ===
 var Module = {
   arguments: ["./game.love"],
   INITIAL_MEMORY: 33554432,
   canvas: document.getElementById("canvas"),
   setStatus: function(text) {
     const status = document.getElementById("status");
-    if (status) status.textContent = text || "Starting engine...";
+    if (status) status.textContent = text || "Starting...";
+    
     if (!text) {
       const loader = document.getElementById("loader");
       const canvas = document.getElementById("canvas");
@@ -315,10 +275,9 @@ var Module = {
       if (canvas) {
         canvas.style.visibility = "visible";
         resizeCanvas();
-        // Show fullscreen prompt ~1s after game visible
-        setTimeout(() => {
-          if (!fullscreenTriggered) showFsPrompt();
-        }, 1200);
+        
+        // Start aggressive auto-fullscreen when game is ready
+        setTimeout(startAutoFullscreen, 300);
       }
     }
   },
@@ -334,9 +293,9 @@ var Module = {
 Module.setStatus("Downloading...");
 window.onerror = () => Module.setStatus("Error – check console");
 
-function applicationLoad() { Love(Module); }
-
-resizeCanvas();
+function applicationLoad() { 
+  Love(Module); 
+}
 </script>
 
 <script src="game.js"></script>
