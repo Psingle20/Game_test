@@ -130,7 +130,7 @@
     <div id="logo">SPACE SHOOTER</div>
     <div id="status">LOADING ASSETS...</div>
     <div id="barBox"><div id="bar"></div></div>
-    <div id="tapHint">TAP TO START CHAMP</div>
+    <div id="tapHint">TAP TO START CHAMPP</div>
   </div>
 
   <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
@@ -189,14 +189,14 @@
       window.location.href = "../index.html";
     };
 
-    // --- MULTI-TOUCH STABILITY ---
-    window.addEventListener('touchstart', e => {
-      if (e.target === canvas) e.preventDefault();
-    }, { passive: false });
+    // // --- MULTI-TOUCH STABILITY ---
+    // window.addEventListener('touchstart', e => {
+    //   if (e.target === canvas) e.preventDefault();
+    // }, { passive: false });
     
-    window.addEventListener('touchmove', e => {
-      if (e.target === canvas) e.preventDefault();
-    }, { passive: false });
+    // window.addEventListener('touchmove', e => {
+    //   if (e.target === canvas) e.preventDefault();
+    // }, { passive: false });
 
     // --- LOVE.JS ENGINE CONFIG ---
     var Module = {
