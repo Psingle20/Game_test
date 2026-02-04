@@ -33,12 +33,12 @@
 
   #canvas {
     display: block;
-    position: fixed; /* Changed to fixed for visual viewport alignment */
+    position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     visibility: hidden;
     image-rendering: pixelated;
-    touch-action: none; /* Extra safety */
+    touch-action: none;
   }
 
   /* LOADER & START OVERLAY */
@@ -131,7 +131,7 @@
     <div id="logo">SPACE SHOOTER</div>
     <div id="status">LOADING ASSETS...</div>
     <div id="barBox"><div id="bar"></div></div>
-    <div id="tapHint">TAP TO START CHAMP</div>
+    <div id="tapHint">TAP TO START APO</div>
   </div>
 
   <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
@@ -142,7 +142,17 @@
     const tapHint = document.getElementById("tapHint");
     let gameStarted = false;
 
-    // Enhanced resize using visualViewport (fixes touch offset in fullscreen on Android Chrome)
+    // FIX FOR BFCACHE RESTORE (main cause of "second play" touch offset)
+    // Mobile browsers often restore the game page from back-forward cache when you exit → main → play again.
+    // This restores old state (canvas size, listeners, love.js runtime) without re-running setup → wrong touch mapping.
+    // Forcing reload on bfcache restore ensures fresh start every time (loader shows, everything resets).
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) {
+        location.reload();
+      }
+    });
+
+    // Enhanced resize with visualViewport
     function resize() {
       let width = window.innerWidth;
       let height = window.innerHeight;
@@ -156,21 +166,18 @@
         offsetTop = visualViewport.offsetTop;
       }
 
-      // CSS size and position
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
       canvas.style.left = offsetLeft + 'px';
       canvas.style.top = offsetTop + 'px';
 
-      // Canvas drawing buffer resolution (CSS pixels → matches touch coordinates)
       canvas.width = width;
       canvas.height = height;
 
-      // Optional: Use devicePixelRatio for sharper rendering (uncomment if game looks blurry)
+      // Optional DPR for sharper look (uncomment if needed)
       // const dpr = window.devicePixelRatio || 1;
       // canvas.width = Math.round(width * dpr);
       // canvas.height = Math.round(height * dpr);
-      // canvas.style.imageRendering = 'pixelated'; // already in CSS
     }
 
     // Listeners
@@ -180,7 +187,14 @@
       visualViewport.addEventListener('scroll', resize);
     }
 
-    // Prevent unwanted touch gestures that can cause offsets
+    // Extra safety: resize when page becomes visible again
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        resize();
+      }
+    });
+
+    // Prevent gesture interference
     canvas.addEventListener('touchstart', e => {
       e.preventDefault();
     }, { passive: false });
@@ -189,7 +203,7 @@
       e.preventDefault();
     }, { passive: false });
 
-    // Initial resize (in case loader shows before start)
+    // Initial resize
     resize();
 
     // --- FULLSCREEN & NAVIGATION ---
@@ -202,13 +216,13 @@
       if (rfs) {
         rfs.call(el).then(() => {
           window.addEventListener('resize', detectBackNavigation);
-          resize(); // Ensure correct size after entering fullscreen
+          resize();
         }).catch(err => {
           console.error("Fullscreen failed:", err);
         });
       }
 
-      // Audio unlock for mobile
+      // Audio unlock
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (AudioContext) { new AudioContext().resume(); }
 
@@ -217,7 +231,6 @@
       gameStarted = true;
       resize();
 
-      // Push state to handle back button
       history.pushState({playing: true}, "");
     }
 
@@ -226,7 +239,7 @@
       
       if (gameStarted && !isFullscreen) {
         window.removeEventListener('resize', detectBackNavigation);
-        window.location.href = "../index.html"; 
+        window.location.href = "../index.html";
       }
     }
 
@@ -234,7 +247,7 @@
       window.location.href = "../index.html";
     };
 
-    // --- LOVE.JS ENGINE CONFIG ---
+    // --- LOVE.JS CONFIG ---
     var Module = {
       arguments: ["./game.love"],
       INITIAL_MEMORY: 73554432,
