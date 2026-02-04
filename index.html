@@ -1,195 +1,453 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>🎮 Game Collection - Play Free Games Online</title>
 
-<title>🎮 GameHub - Play Free Games</title>
-
-<!-- FIXED GOOGLE FONTS -->
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-body{
-font-family:'Poppins',sans-serif;
-background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
-min-height:100vh;
-color:white;
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  color: white;
+  overflow-x: hidden;
 }
 
-/* HEADER */
-header{
-background:rgba(0,0,0,0.5);
-padding:20px;
-text-align:center;
-border-bottom:3px solid #00ffe7;
+/* Header */
+header {
+  background: rgba(0,0,0,0.4);
+  padding: 20px;
+  text-align: center;
+  border-bottom: 3px solid #00ffe7;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
 }
 
-.logo{
-font-family:'Press Start 2P',monospace;
-color:#00ffe7;
-font-size:clamp(1.2rem,5vw,2rem);
+.logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(1.2rem, 5vw, 2rem);
+  color: #00ffe7;
+  text-shadow: 
+    0 0 10px #00ffe7,
+    0 0 20px #00ffe7,
+    0 0 40px #00b3ff;
+  letter-spacing: 2px;
 }
 
-.logo span{
-color:#ff6b6b;
+.logo span {
+  color: #ff6b6b;
+  text-shadow: 
+    0 0 10px #ff6b6b,
+    0 0 20px #ff6b6b;
 }
 
-/* STATS */
-.stats-bar{
-display:flex;
-justify-content:center;
-gap:30px;
-padding:15px;
-background:rgba(0,0,0,0.3);
+.tagline {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-top: 8px;
 }
 
-.stat-number{
-font-family:'Press Start 2P';
-color:#00ffe7;
-font-size:1.3rem;
+/* Stats Bar */
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding: 15px;
+  background: rgba(0,0,0,0.3);
+  flex-wrap: wrap;
 }
 
-/* SEARCH */
-.search-container{
-padding:20px;
-max-width:500px;
-margin:auto;
+.stat {
+  text-align: center;
 }
 
-.search-box{
-width:100%;
-padding:14px;
-border-radius:30px;
-border:none;
-background:rgba(255,255,255,0.1);
-color:white;
+.stat-number {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.5rem;
+  color: #00ffe7;
 }
 
-/* GRID */
-.games-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-gap:15px;
-padding:20px;
-max-width:1200px;
-margin:auto;
+.stat-label {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 5px;
 }
 
-.game-card{
-background:rgba(255,255,255,0.08);
-border-radius:15px;
-text-align:center;
-padding:15px;
-color:white;
-text-decoration:none;
-transition:0.3s;
-position:relative;
+/* Search */
+.search-container {
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
-.game-card:hover{
-transform:scale(1.05);
-box-shadow:0 0 20px #00ffe7;
+.search-box {
+  width: 100%;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 50px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  border: 2px solid transparent;
+  transition: all 0.3s;
 }
 
-.game-icon{
-font-size:3rem;
+.search-box:focus {
+  border-color: #00ffe7;
+  background: rgba(255,255,255,0.15);
 }
 
-.game-title{
-margin-top:10px;
-font-weight:700;
+.search-box::placeholder {
+  color: #666;
 }
 
-.game-category{
-font-size:0.75rem;
-color:#00ffe7;
+/* Games Grid */
+.games-section {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-/* BADGES */
-.new-badge,.hot-badge{
-position:absolute;
-top:10px;
-right:10px;
-font-size:0.6rem;
-padding:4px 8px;
-border-radius:10px;
-font-weight:bold;
+.section-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1rem;
+  color: #ff6b6b;
+  margin-bottom: 20px;
+  padding-left: 10px;
+  border-left: 4px solid #ff6b6b;
 }
 
-.new-badge{background:#ff6b6b;}
-.hot-badge{background:#ff9500;}
-
-/* MOBILE */
-@media(max-width:600px){
-.games-grid{
-grid-template-columns:repeat(2,1fr);
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 20px;
 }
-.game-icon{font-size:2.5rem;}
+
+/* Game Card */
+.game-card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  border-radius: 15px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: white;
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid transparent;
+}
+
+.game-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: #00ffe7;
+  box-shadow: 
+    0 15px 40px rgba(0,255,231,0.3),
+    0 0 20px rgba(0,255,231,0.2);
+}
+
+.game-card::before {
+  content: '▶ PLAY';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,255,231,0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.8rem;
+  color: #000;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.game-card:hover::before {
+  opacity: 1;
+}
+
+.game-icon {
+  font-size: 3.5rem;
+  margin-bottom: 10px;
+}
+
+.game-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 0 10px;
+}
+
+.game-category {
+  font-size: 0.7rem;
+  color: #00ffe7;
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+
+/* Category Tags */
+.categories {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+
+.category-tag {
+  padding: 8px 20px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid transparent;
+}
+
+.category-tag:hover,
+.category-tag.active {
+  background: #00ffe7;
+  color: #000;
+  border-color: #00ffe7;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 0.8rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 40px;
+}
+
+footer a {
+  color: #00ffe7;
+  text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .game-icon {
+    font-size: 2.5rem;
+  }
+  
+  .game-title {
+    font-size: 0.75rem;
+  }
+  
+  .stats-bar {
+    gap: 15px;
+  }
+  
+  .stat-number {
+    font-size: 1.2rem;
+  }
+}
+
+/* Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.game-card:nth-child(odd) .game-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+.game-card:nth-child(even) .game-icon {
+  animation: float 3s ease-in-out infinite 0.5s;
+}
+
+/* New Game Badge */
+.new-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ff6b6b;
+  color: white;
+  font-size: 0.6rem;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+/* Hot Badge */
+.hot-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ff9500;
+  color: white;
+  font-size: 0.6rem;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+  z-index: 10;
 }
 </style>
 </head>
 
 <body>
 
+<!-- Header -->
 <header>
-<div class="logo">GAME<span>HUB</span></div>
-<p>Play Free Games Online</p>
+  <div class="logo">GAME<span>HUB</span></div>
+  <p class="tagline">Play Free Games Online - No Downloads Required!</p>
 </header>
 
+<!-- Stats -->
 <div class="stats-bar">
-<div>
-<div class="stat-number" id="gameCount">2</div>
-<div>GAMES</div>
-</div>
-<div>
-<div class="stat-number">∞</div>
-<div>FUN</div>
-</div>
+  <div class="stat">
+    <div class="stat-number" id="gameCount">2</div>
+    <div class="stat-label">GAMES</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">∞</div>
+    <div class="stat-label">FUN</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">0</div>
+    <div class="stat-label">ADS</div>
+  </div>
 </div>
 
+<!-- Categories -->
+<div class="categories">
+  <span class="category-tag active" data-category="all">All Games</span>
+  <span class="category-tag" data-category="action">Action</span>
+  <span class="category-tag" data-category="puzzle">Puzzle</span>
+  <span class="category-tag" data-category="arcade">Arcade</span>
+  <span class="category-tag" data-category="educational">Educational</span>
+</div>
+
+<!-- Search -->
 <div class="search-container">
-<input class="search-box" id="searchInput" placeholder="Search games...">
+  <input type="text" class="search-box" placeholder="🔍 Search games..." id="searchInput">
 </div>
 
-<div class="games-grid">
+<!-- Games Grid -->
+<section class="games-section">
+  <h2 class="section-title">ALL GAMES</h2>
+  
+  <div class="games-grid" id="gamesGrid">
+    
+    <!-- Game 1: Escape Protocol -->
+    <a href="./escape-protocol/index.html" class="game-card" data-category="educational action">
+      <span class="new-badge">NEW</span>
+      <div class="game-icon">🚀</div>
+      <div class="game-title">ESCAPE PROTOCOL</div>
+      <div class="game-category">Educational</div>
+    </a>
+    
+    <!-- Game 2: Snake -->
+    <a href="./snake/index.html" class="game-card" data-category="arcade">
+      <span class="hot-badge">🔥 HOT</span>
+      <div class="game-icon">🐍</div>
+      <div class="game-title">SNAKE</div>
+      <div class="game-category">Arcade</div>
+    </a>
+    
+    <!-- Placeholder: Coming Soon Games -->
+    <div class="game-card" style="opacity: 0.4; cursor: not-allowed;" data-category="puzzle">
+      <div class="game-icon">🧩</div>
+      <div class="game-title">PUZZLE GAME</div>
+      <div class="game-category">Coming Soon</div>
+    </div>
+    
+    <div class="game-card" style="opacity: 0.4; cursor: not-allowed;" data-category="action">
+      <div class="game-icon">⚔️</div>
+      <div class="game-title">BATTLE ARENA</div>
+      <div class="game-category">Coming Soon</div>
+    </div>
+    
+    <div class="game-card" style="opacity: 0.4; cursor: not-allowed;" data-category="arcade">
+      <div class="game-icon">🏎️</div>
+      <div class="game-title">RACING</div>
+      <div class="game-category">Coming Soon</div>
+    </div>
+    
+    <div class="game-card" style="opacity: 0.4; cursor: not-allowed;" data-category="puzzle">
+      <div class="game-icon">💎</div>
+      <div class="game-title">GEM MATCH</div>
+      <div class="game-category">Coming Soon</div>
+    </div>
+    
+  </div>
+</section>
 
-<!-- GAME 1 -->
-<a href="escape-protocol/index.html" class="game-card">
-<span class="new-badge">NEW</span>
-<div class="game-icon">👾</div>
-<div class="game-title">ESCAPE PROTOCOL</div>
-<div class="game-category">Platformer</div>
-</a>
-
-<!-- GAME 2 -->
-<a href="snake/index.html" class="game-card">
-<span class="hot-badge">HOT</span>
-<div class="game-icon">🚀</div>
-<div class="game-title">SPACE SHOOTER</div>
-<div class="game-category">Arcade</div>
-</a>
-
-</div>
+<!-- Footer -->
+<footer>
+  <p>Made with ❤️ by Claude Opus 4.5 | <a href="#">About</a> | <a href="#">Contact</a></p>
+  <p style="margin-top: 10px;">© 2025 GameHub. All games run in your browser - no downloads needed!</p>
+</footer>
 
 <script>
-document.getElementById("gameCount").innerText =
-document.querySelectorAll(".game-card").length;
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const gameCards = document.querySelectorAll('.game-card');
+  
+  gameCards.forEach(card => {
+    const title = card.querySelector('.game-title').textContent.toLowerCase();
+    const category = card.querySelector('.game-category').textContent.toLowerCase();
+    
+    if (title.includes(searchTerm) || category.includes(searchTerm)) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+});
 
-document.getElementById("searchInput").addEventListener("input",e=>{
-let val=e.target.value.toLowerCase();
-document.querySelectorAll(".game-card").forEach(card=>{
-let text=card.innerText.toLowerCase();
-card.style.display=text.includes(val)?"block":"none";
+// Category filter
+document.querySelectorAll('.category-tag').forEach(tag => {
+  tag.addEventListener('click', function() {
+    // Update active state
+    document.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    
+    const category = this.dataset.category;
+    const gameCards = document.querySelectorAll('.game-card');
+    
+    gameCards.forEach(card => {
+      if (category === 'all' || card.dataset.category.includes(category)) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
 });
-});
+
+// Update game count
+const playableGames = document.querySelectorAll('.game-card[href]').length;
+document.getElementById('gameCount').textContent = playableGames;
 </script>
 
 </body>
