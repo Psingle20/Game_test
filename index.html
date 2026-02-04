@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>🎮 GameHub - Play Free Games</title>
+
+<!-- FIXED GOOGLE FONTS -->
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+body{
+font-family:'Poppins',sans-serif;
+background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+min-height:100vh;
+color:white;
+}
+
+/* HEADER */
+header{
+background:rgba(0,0,0,0.5);
+padding:20px;
+text-align:center;
+border-bottom:3px solid #00ffe7;
+}
+
+.logo{
+font-family:'Press Start 2P',monospace;
+color:#00ffe7;
+font-size:clamp(1.2rem,5vw,2rem);
+}
+
+.logo span{
+color:#ff6b6b;
+}
+
+/* STATS */
+.stats-bar{
+display:flex;
+justify-content:center;
+gap:30px;
+padding:15px;
+background:rgba(0,0,0,0.3);
+}
+
+.stat-number{
+font-family:'Press Start 2P';
+color:#00ffe7;
+font-size:1.3rem;
+}
+
+/* SEARCH */
+.search-container{
+padding:20px;
+max-width:500px;
+margin:auto;
+}
+
+.search-box{
+width:100%;
+padding:14px;
+border-radius:30px;
+border:none;
+background:rgba(255,255,255,0.1);
+color:white;
+}
+
+/* GRID */
+.games-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+gap:15px;
+padding:20px;
+max-width:1200px;
+margin:auto;
+}
+
+.game-card{
+background:rgba(255,255,255,0.08);
+border-radius:15px;
+text-align:center;
+padding:15px;
+color:white;
+text-decoration:none;
+transition:0.3s;
+position:relative;
+}
+
+.game-card:hover{
+transform:scale(1.05);
+box-shadow:0 0 20px #00ffe7;
+}
+
+.game-icon{
+font-size:3rem;
+}
+
+.game-title{
+margin-top:10px;
+font-weight:700;
+}
+
+.game-category{
+font-size:0.75rem;
+color:#00ffe7;
+}
+
+/* BADGES */
+.new-badge,.hot-badge{
+position:absolute;
+top:10px;
+right:10px;
+font-size:0.6rem;
+padding:4px 8px;
+border-radius:10px;
+font-weight:bold;
+}
+
+.new-badge{background:#ff6b6b;}
+.hot-badge{background:#ff9500;}
+
+/* MOBILE */
+@media(max-width:600px){
+.games-grid{
+grid-template-columns:repeat(2,1fr);
+}
+.game-icon{font-size:2.5rem;}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">GAME<span>HUB</span></div>
+<p>Play Free Games Online</p>
+</header>
+
+<div class="stats-bar">
+<div>
+<div class="stat-number" id="gameCount">2</div>
+<div>GAMES</div>
+</div>
+<div>
+<div class="stat-number">∞</div>
+<div>FUN</div>
+</div>
+</div>
+
+<div class="search-container">
+<input class="search-box" id="searchInput" placeholder="Search games...">
+</div>
+
+<div class="games-grid">
+
+<!-- GAME 1 -->
+<a href="escape-protocol/index.html" class="game-card">
+<span class="new-badge">NEW</span>
+<div class="game-icon">👾</div>
+<div class="game-title">ESCAPE PROTOCOL</div>
+<div class="game-category">Platformer</div>
+</a>
+
+<!-- GAME 2 -->
+<a href="snake/index.html" class="game-card">
+<span class="hot-badge">HOT</span>
+<div class="game-icon">🚀</div>
+<div class="game-title">SPACE SHOOTER</div>
+<div class="game-category">Arcade</div>
+</a>
+
+</div>
+
+<script>
+document.getElementById("gameCount").innerText =
+document.querySelectorAll(".game-card").length;
+
+document.getElementById("searchInput").addEventListener("input",e=>{
+let val=e.target.value.toLowerCase();
+document.querySelectorAll(".game-card").forEach(card=>{
+let text=card.innerText.toLowerCase();
+card.style.display=text.includes(val)?"block":"none";
+});
+});
+</script>
+
+</body>
+</html>
