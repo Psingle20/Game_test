@@ -26,6 +26,7 @@
 html, body {
   width: 100% !important;
   height: 100% !important;
+  height: 100dvh !important;
   background: #000 !important;
   background-image: none !important;
   overflow: hidden !important;
@@ -37,9 +38,10 @@ html, body {
 
 #canvas {
   position: fixed !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
   height: 100dvh !important;
   display: block !important;
   border: 0 !important;
@@ -226,9 +228,6 @@ footer { display: none !important; }
 
 <div id="splash">
   <div class="sp-box">
-    <!-- <div class="sp-icon">🚀</div> -->
-    <!-- <div class="sp-title">ESCAPE PROTOCOL</div> -->
-    <!-- <div class="sp-sub">The AI Planet</div> -->
     <button id="runBtn" onclick="runGame()">▶ RUN GAME</button>
     <div class="sp-hint">Tap to play fullscreen</div>
     <div class="sp-size">~18 MB download</div>
@@ -247,49 +246,8 @@ footer { display: none !important; }
 
 <script>
 // ============================================================
-// BACK BUTTON FIX — THE REAL PROBLEM:
-//
-// On Android, pressing back while fullscreen does this:
-//   1st back press → browser exits fullscreen (eats the press)
-//   2nd back press → actual navigation
-//
-// SOLUTION: When fullscreen exits AND we didn't exit it ourselves,
-// it means user pressed back → immediately redirect to hub.
+// DETECT PLATFORM
 // ============================================================
-
-var isNavigating = false;
-var weExitedFullscreen = false; // Track if WE caused the exit
-
-function goToHub() {
-  if (isNavigating) return;
-  isNavigating = true;
-  window.location.replace('../index.html');
-}
-
-// When fullscreen exits: if we didn't cause it, user pressed back → redirect
-function onFullscreenExit() {
-  // In PWA standalone mode, fullscreen API isn't used — don't redirect
-  if (isStandalone) return;
-  var isFs = document.fullscreenElement || document.webkitFullscreenElement;
-  if (!isFs && gameStarted && !weExitedFullscreen && !isNavigating) {
-    goToHub();
-  }
-  weExitedFullscreen = false;
-}
-
-var isStandaloneEarly = window.navigator.standalone === true
-  || window.matchMedia('(display-mode: standalone)').matches
-  || window.matchMedia('(display-mode: fullscreen)').matches;
-
-document.addEventListener('fullscreenchange', onFullscreenExit);
-document.addEventListener('webkitfullscreenchange', onFullscreenExit);
-
-
-// ============================================================
-// RUN GAME
-// ============================================================
-var gameStarted = false;
-
 var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
@@ -297,12 +255,50 @@ var isStandalone = window.navigator.standalone === true
   || window.matchMedia('(display-mode: standalone)').matches
   || window.matchMedia('(display-mode: fullscreen)').matches;
 
+// ============================================================
+// BACK BUTTON — works in BOTH browser fullscreen AND PWA mode
+// ============================================================
+var isNavigating = false;
+var weExitedFullscreen = false;
+
+function goToHub() {
+  if (isNavigating) return;
+  isNavigating = true;
+  window.location.replace('../index.html');
+}
+
+// METHOD 1: Fullscreen exit detection (browser mode on Android)
+function onFullscreenExit() {
+  if (isStandalone) return; // PWA uses Method 2
+  var isFs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (!isFs && gameStarted && !weExitedFullscreen && !isNavigating) {
+    goToHub();
+  }
+  weExitedFullscreen = false;
+}
+document.addEventListener('fullscreenchange', onFullscreenExit);
+document.addEventListener('webkitfullscreenchange', onFullscreenExit);
+
+// METHOD 2: History API back button (PWA standalone mode)
+// Push a fake state so back button has somewhere to go
+if (isStandalone) {
+  history.pushState({ game: true }, '');
+  window.addEventListener('popstate', function(e) {
+    // User pressed back in PWA → go to hub
+    goToHub();
+  });
+}
+
+
+// ============================================================
+// RUN GAME
+// ============================================================
+var gameStarted = false;
 
 function runGame() {
   if (gameStarted) return;
   gameStarted = true;
 
-  // In PWA standalone mode, we're already fullscreen — skip browser fullscreen API
   if (!isStandalone) {
     enterFullscreen();
     if (isIOS) iosHideBar();
@@ -325,7 +321,7 @@ function runGame() {
 
 
 // ============================================================
-// FULLSCREEN
+// FULLSCREEN (browser mode only)
 // ============================================================
 function enterFullscreen() {
   if (isNavigating) return;
@@ -341,7 +337,7 @@ function enterFullscreen() {
 
 
 // ============================================================
-// iOS SCROLL TRICK
+// iOS SCROLL TRICK (browser mode only)
 // ============================================================
 function iosHideBar() {
   document.body.style.height = (window.innerHeight + 50) + 'px';
@@ -360,39 +356,31 @@ function iosHideBar() {
 
 
 // ============================================================
-// CANVAS RESIZE (CSS only)
+// CANVAS RESIZE — simple, works everywhere
 // ============================================================
 function resizeCanvas() {
   if (isNavigating) return;
   var c = document.getElementById("canvas");
   if (!c) return;
-  var w, h;
-  if (isStandalone) {
-    // In PWA mode, use screen dimensions for true fullscreen
-    w = screen.width;
-    h = screen.height;
-    // But on iOS PWA, screen.width/height may be wrong in landscape
-    if (window.innerWidth > window.innerHeight) {
-      w = Math.max(window.innerWidth, screen.width);
-      h = Math.max(window.innerHeight, screen.height);
-      // Ensure landscape
-      if (w < h) { var tmp = w; w = h; h = tmp; }
-    }
-  } else if (window.visualViewport) {
-    w = window.visualViewport.width;
-    h = window.visualViewport.height;
-  } else {
-    w = window.innerWidth;
-    h = window.innerHeight;
+
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+
+  // On some devices visualViewport is more accurate
+  if (window.visualViewport) {
+    w = Math.round(window.visualViewport.width);
+    h = Math.round(window.visualViewport.height);
   }
+
   c.style.setProperty('width', w + 'px', 'important');
   c.style.setProperty('height', h + 'px', 'important');
+  c.style.setProperty('top', '0px', 'important');
+  c.style.setProperty('left', '0px', 'important');
 }
 
 window.addEventListener("resize", function() { if (!isNavigating) resizeCanvas(); });
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', function() { if (!isNavigating) resizeCanvas(); });
-  window.visualViewport.addEventListener('scroll', function() { if (!isNavigating) resizeCanvas(); });
 }
 window.addEventListener("orientationchange", function() {
   if (isNavigating) return;
@@ -457,7 +445,11 @@ var Module = {
       var loader = document.getElementById("loader");
       var canvas = document.getElementById("canvas");
       if (loader) loader.classList.add("fadeOut");
-      if (canvas) { canvas.style.visibility = "visible"; resizeCanvas(); enterFullscreen(); }
+      if (canvas) {
+        canvas.style.visibility = "visible";
+        resizeCanvas();
+        if (!isStandalone) enterFullscreen();
+      }
       return;
     }
 

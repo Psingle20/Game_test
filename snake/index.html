@@ -26,6 +26,7 @@
 html, body {
   width: 100% !important;
   height: 100% !important;
+  height: 100dvh !important;
   background: #000 !important;
   background-image: none !important;
   overflow: hidden !important;
@@ -37,9 +38,10 @@ html, body {
 
 #canvas {
   position: fixed !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
   height: 100dvh !important;
   display: block !important;
   border: 0 !important;
@@ -205,16 +207,14 @@ footer { display: none !important; }
 
 <div id="splash">
   <div class="sp-box">
-    <!-- <div class="sp-icon">🐍</div> -->
-    <!-- <div class="sp-title">SNAKE</div> -->
     <button id="runBtn" onclick="runGame()">▶ RUN GAME</button>
-    <div class="sp-hint">Tapp to play fullscreen</div>
+    <div class="sp-hint">Tap to play fullscreen</div>
     <div class="sp-size">Quick load</div>
   </div>
 </div>
 
 <div id="loader">
-  <div class="ld-title">Space Shooter</div>
+  <div class="ld-title">🐍 SNAKE</div>
   <div class="ld-bar-wrap"><div id="bar"></div></div>
   <div id="pct">0%</div>
   <div id="dlInfo"></div>
@@ -224,9 +224,17 @@ footer { display: none !important; }
 
 <script>
 // ============================================================
-// BACK BUTTON: Android back exits fullscreen first.
-// We detect that fullscreen exited (and we didn't do it)
-// → immediately redirect to hub. One press = done.
+// DETECT PLATFORM
+// ============================================================
+var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+var isStandalone = window.navigator.standalone === true
+  || window.matchMedia('(display-mode: standalone)').matches
+  || window.matchMedia('(display-mode: fullscreen)').matches;
+
+// ============================================================
+// BACK BUTTON — works in BOTH browser fullscreen AND PWA mode
 // ============================================================
 var isNavigating = false;
 var weExitedFullscreen = false;
@@ -237,6 +245,7 @@ function goToHub() {
   window.location.replace('../index.html');
 }
 
+// METHOD 1: Fullscreen exit detection (browser mode on Android)
 function onFullscreenExit() {
   if (isStandalone) return;
   var isFs = document.fullscreenElement || document.webkitFullscreenElement;
@@ -245,24 +254,33 @@ function onFullscreenExit() {
   }
   weExitedFullscreen = false;
 }
-
 document.addEventListener('fullscreenchange', onFullscreenExit);
 document.addEventListener('webkitfullscreenchange', onFullscreenExit);
 
+// METHOD 2: History API back button (PWA standalone mode)
+if (isStandalone) {
+  history.pushState({ game: true }, '');
+  window.addEventListener('popstate', function(e) {
+    goToHub();
+  });
+}
+
+
+// ============================================================
+// RUN GAME
+// ============================================================
 var gameStarted = false;
-var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-var isStandalone = window.navigator.standalone === true
-  || window.matchMedia('(display-mode: standalone)').matches
-  || window.matchMedia('(display-mode: fullscreen)').matches;
 
 function runGame() {
   if (gameStarted) return;
   gameStarted = true;
+
   if (!isStandalone) {
     enterFullscreen();
     if (isIOS) iosHideBar();
   }
   unlockAudio();
+
   document.getElementById('splash').style.display = 'none';
   document.getElementById('loader').style.display = 'flex';
 
@@ -277,6 +295,10 @@ function runGame() {
   document.body.appendChild(s1);
 }
 
+
+// ============================================================
+// FULLSCREEN (browser mode only)
+// ============================================================
 function enterFullscreen() {
   if (isNavigating) return;
   var el = document.documentElement;
@@ -289,6 +311,10 @@ function enterFullscreen() {
   }
 }
 
+
+// ============================================================
+// iOS SCROLL TRICK (browser mode only)
+// ============================================================
 function iosHideBar() {
   document.body.style.height = (window.innerHeight + 50) + 'px';
   document.body.style.overflow = 'auto';
@@ -304,40 +330,42 @@ function iosHideBar() {
   }, 100);
 }
 
+
+// ============================================================
+// CANVAS RESIZE — simple, works everywhere
+// ============================================================
 function resizeCanvas() {
   if (isNavigating) return;
   var c = document.getElementById("canvas");
   if (!c) return;
-  var w, h;
-  if (isStandalone) {
-    w = screen.width;
-    h = screen.height;
-    if (window.innerWidth > window.innerHeight) {
-      w = Math.max(window.innerWidth, screen.width);
-      h = Math.max(window.innerHeight, screen.height);
-      if (w < h) { var tmp = w; w = h; h = tmp; }
-    }
-  } else if (window.visualViewport) {
-    w = window.visualViewport.width;
-    h = window.visualViewport.height;
-  } else {
-    w = window.innerWidth;
-    h = window.innerHeight;
+
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+
+  if (window.visualViewport) {
+    w = Math.round(window.visualViewport.width);
+    h = Math.round(window.visualViewport.height);
   }
+
   c.style.setProperty('width', w + 'px', 'important');
   c.style.setProperty('height', h + 'px', 'important');
+  c.style.setProperty('top', '0px', 'important');
+  c.style.setProperty('left', '0px', 'important');
 }
 
 window.addEventListener("resize", function() { if (!isNavigating) resizeCanvas(); });
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', function() { if (!isNavigating) resizeCanvas(); });
-  window.visualViewport.addEventListener('scroll', function() { if (!isNavigating) resizeCanvas(); });
 }
 window.addEventListener("orientationchange", function() {
   if (isNavigating) return;
   setTimeout(resizeCanvas, 100); setTimeout(resizeCanvas, 300); setTimeout(resizeCanvas, 600);
 });
 
+
+// ============================================================
+// TOUCH PREVENTION
+// ============================================================
 function pv(e) { if (gameStarted) e.preventDefault(); }
 document.addEventListener('touchstart', pv, { passive: false });
 document.addEventListener('touchmove', pv, { passive: false });
@@ -354,6 +382,10 @@ window.addEventListener("keydown", function(e) {
   if ([32, 37, 38, 39, 40].includes(e.keyCode)) e.preventDefault();
 });
 
+
+// ============================================================
+// AUDIO UNLOCK
+// ============================================================
 var au = false;
 function unlockAudio() {
   if (au) return;
@@ -366,6 +398,10 @@ function unlockAudio() {
   au = true;
 }
 
+
+// ============================================================
+// MODULE + DOWNLOAD PROGRESS
+// ============================================================
 var Module = {
   arguments: ["./game.love"],
   INITIAL_MEMORY: 67108864,
@@ -379,7 +415,11 @@ var Module = {
       var loader = document.getElementById("loader");
       var canvas = document.getElementById("canvas");
       if (loader) loader.classList.add("fadeOut");
-      if (canvas) { canvas.style.visibility = "visible"; resizeCanvas(); enterFullscreen(); }
+      if (canvas) {
+        canvas.style.visibility = "visible";
+        resizeCanvas();
+        if (!isStandalone) enterFullscreen();
+      }
       return;
     }
     var m = text.match(/\((\d+)\/(\d+)\)/);
