@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#000000">
+
+<title>ESCAPE PROTOCOL - GameHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+html, body {
+  width: 100% !important;
+  height: 100% !important;
+  height: 100dvh !important;
+  background: #000 !important;
+  background-image: none !important;
+  overflow: hidden !important;
+  touch-action: none !important;
+  font-family: Arial, sans-serif !important;
+  position: fixed !important;
+  inset: 0 !important;
+}
+
+#canvas {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  display: block !important;
+  border: 0 !important;
+  padding: 0 !important;
+  background: #000 !important;
+  -webkit-transform: translateZ(0) !important;
+  transform: translateZ(0) !important;
+  image-rendering: pixelated !important;
+  image-rendering: crisp-edges !important;
+  z-index: 1;
+}
+
+/* ========== iOS BACK BUTTON ========== */
+#iosBackBtn {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 99999;
+  background: rgba(0,0,0,0.6);
+  border: 2px solid rgba(0,255,231,0.5);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.3s;
+}
+
+#iosBackBtn::after {
+  content: '✕';
+  color: #00ffe7;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#iosBackBtn:active {
+  background: rgba(0,255,231,0.3);
+  transform: scale(0.9);
+}
+
+#iosBackBtn.faded {
+  opacity: 0.3;
+}
+
+/* ========== SPLASH ========== */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #0d1525 0%, #050810 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.sp-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 88%;
+  max-width: 420px;
+}
+
+.sp-icon {
+  font-size: clamp(2.8rem, 10vh, 4.5rem);
+  line-height: 1;
+}
+
+.sp-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.6rem, 2.8vw, 1rem);
+  color: #00ffe7;
+  text-shadow: 0 0 10px #00ffe7, 0 0 25px #00b3ff55;
+  margin-top: clamp(6px, 1.5vh, 14px);
+  letter-spacing: 1px;
+}
+
+.sp-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.3rem, 1.3vw, 0.45rem);
+  color: #ff9900;
+  margin-top: 4px;
+}
+
+#runBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.55rem, 2.2vw, 0.85rem);
+  color: #000;
+  background: #00ffe7;
+  border: none;
+  border-radius: 50px;
+  padding: clamp(12px, 2.5vh, 18px) clamp(28px, 7vw, 55px);
+  cursor: pointer;
+  margin-top: clamp(18px, 4vh, 35px);
+  transition: transform 0.15s;
+  box-shadow: 0 0 25px #00ffe755;
+  animation: btnGlow 2.5s ease-in-out infinite;
+  -webkit-appearance: none;
+}
+#runBtn:active { transform: scale(0.92); }
+
+@keyframes btnGlow {
+  0%, 100% { box-shadow: 0 0 20px #00ffe744; }
+  50% { box-shadow: 0 0 35px #00ffe788, 0 0 70px #00ffe733; }
+}
+
+.sp-hint {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.25rem, 1vw, 0.35rem);
+  color: #333;
+  margin-top: clamp(10px, 2vh, 18px);
+}
+
+.sp-size {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.22rem, 0.9vw, 0.3rem);
+  color: #282828;
+  margin-top: 6px;
+}
+
+/* ========== LOADER ========== */
+#loader {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #050810 !important;
+  color: white;
+  z-index: 90;
+}
+
+.ld-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.55rem, 2.5vw, 0.9rem);
+  color: #00ffe7;
+  text-shadow: 0 0 8px #00ffe7;
+}
+
+.ld-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.3rem, 1.2vw, 0.42rem);
+  color: #ff9900;
+  margin-top: 4px;
+  margin-bottom: clamp(16px, 3vh, 28px);
+}
+
+.ld-bar-wrap {
+  width: 78%;
+  max-width: 320px;
+  height: 12px;
+  border-radius: 20px;
+  background: #151525;
+  overflow: hidden;
+  border: 1px solid #252540;
+}
+
+#bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #00ffe7, #00b3ff);
+  border-radius: 20px;
+  transition: width 0.12s linear;
+}
+
+#pct {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.45rem, 2vw, 0.7rem);
+  color: #00ffe7;
+  margin-top: clamp(8px, 1.5vh, 14px);
+}
+
+#dlInfo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.22rem, 0.9vw, 0.32rem);
+  color: #444;
+  margin-top: 5px;
+}
+
+.fadeOut { animation: fadeAway 0.5s forwards; pointer-events: none; }
+@keyframes fadeAway { to { opacity: 0; visibility: hidden; } }
+
+/* ========== ROTATE ========== */
+#rotatePrompt {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000000f5 !important;
+  color: white;
+  font-family: 'Press Start 2P', monospace;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  text-align: center;
+}
+.rt-icon { font-size: clamp(2rem, 8vh, 3rem); margin-bottom: 14px; }
+.rt-text { font-size: clamp(0.4rem, 1.8vw, 0.6rem); line-height: 2; }
+
+@media (orientation: portrait) {
+  #rotatePrompt.active { display: flex !important; }
+}
+
+footer { display: none !important; }
+</style>
+</head>
+
+<body>
+
+<!-- iOS Back Button (visible on iOS and PWA mode) -->
+<div id="iosBackBtn" onclick="goToHub()"></div>
+
+<div id="rotatePrompt">
+  <div class="rt-icon">📱↻</div>
+  <div class="rt-text">Please rotate your device<br>to landscape mode</div>
+</div>
+
+<div id="splash">
+  <div class="sp-box">
+    <button id="runBtn" onclick="runGame()">▶ RUN GAME</button>
+    <div class="sp-hint">Tap to play fullscreen</div>
+    <div class="sp-size">~18 MB download</div>
+  </div>
+</div>
+
+<div id="loader">
+  <div class="ld-title">🚀 ESCAPE PROTOCOL</div>
+  <div class="ld-sub">The AI Planet</div>
+  <div class="ld-bar-wrap"><div id="bar"></div></div>
+  <div id="pct">0%</div>
+  <div id="dlInfo"></div>
+</div>
+
+<canvas id="canvas" style="visibility:hidden;"></canvas>
+
+<script>
+// ============================================================
+// DETECT PLATFORM
+// ============================================================
+var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+var isStandalone = window.navigator.standalone === true
+  || window.matchMedia('(display-mode: standalone)').matches
+  || window.matchMedia('(display-mode: fullscreen)').matches;
+
+// Detect touch-capable devices (phones + tablets)
+var isTouchDevice = (navigator.maxTouchPoints || 0) > 0
+  || 'ontouchstart' in window
+  || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+var isDesktop = !isTouchDevice;
+
+
+// ============================================================
+// Pre-create optimized WebGL context
+// ============================================================
+var _preGLContext = null;
+(function() {
+  var c = document.getElementById('canvas');
+  if (!c) return;
+
+  var attrs = {
+    alpha: false,
+    depth: true,
+    stencil: false,
+    antialias: false,
+    premultipliedAlpha: false,
+    preserveDrawingBuffer: false,
+    powerPreference: 'high-performance',
+    failIfMajorPerformanceCaveat: false
+  };
+
+  _preGLContext = c.getContext('webgl', attrs) || c.getContext('webgl2', attrs);
+})();
+
+
+// ============================================================
+// CANVAS SIZE
+// 
+// The LÖVE game reads canvas.width/height via love.graphics.getDimensions()
+// The game's main.lua now has DYNAMIC virtual resolution that adapts
+// to the canvas aspect ratio.
+//
+// We set canvas = viewport size so the game knows the real screen dimensions.
+// The game then calculates its own virtual resolution (400-600 × 300).
+// ============================================================
+function setCanvasSize() {
+  var c = document.getElementById('canvas');
+  if (!c) return;
+
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+
+  if (window.visualViewport) {
+    w = Math.round(window.visualViewport.width);
+    h = Math.round(window.visualViewport.height);
+  }
+
+  // Set canvas buffer to match viewport
+  // The LÖVE game will read this and adapt its virtual resolution
+  c.width = w;
+  c.height = h;
+}
+
+
+// ============================================================
+// BACK BUTTON — 3 methods for all platforms
+// ============================================================
+var isNavigating = false;
+var weExitedFullscreen = false;
+
+function goToHub() {
+  if (isNavigating) return;
+  isNavigating = true;
+  window.location.replace('../index.html');
+}
+
+function onFullscreenExit() {
+  if (isStandalone) return;
+  var isFs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (!isFs && gameStarted && !weExitedFullscreen && !isNavigating) {
+    goToHub();
+  }
+  weExitedFullscreen = false;
+}
+document.addEventListener('fullscreenchange', onFullscreenExit);
+document.addEventListener('webkitfullscreenchange', onFullscreenExit);
+
+if (isStandalone) {
+  history.pushState({ game: true }, '');
+  window.addEventListener('popstate', function(e) {
+    goToHub();
+  });
+}
+
+function showIOSBackBtn() {
+  var btn = document.getElementById('iosBackBtn');
+  if (!btn) return;
+
+  if (isIOS || isStandalone) {
+    btn.style.display = 'flex';
+    setTimeout(function() {
+      btn.classList.add('faded');
+    }, 4000);
+
+    document.addEventListener('touchstart', function() {
+      btn.classList.remove('faded');
+      clearTimeout(btn._fadeTimer);
+      btn._fadeTimer = setTimeout(function() {
+        btn.classList.add('faded');
+      }, 4000);
+    });
+  }
+}
+
+
+// ============================================================
+// RUN GAME
+// ============================================================
+var gameStarted = false;
+
+function runGame() {
+  if (gameStarted) return;
+  gameStarted = true;
+
+  // Activate rotate prompt (only shows in portrait via CSS)
+  var rp = document.getElementById('rotatePrompt');
+  if (rp && isTouchDevice) rp.classList.add('active');
+
+  if (!isStandalone) {
+    enterFullscreen();
+    if (isIOS) iosHideBar();
+  }
+  unlockAudio();
+  showIOSBackBtn();
+
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('loader').style.display = 'flex';
+
+  // Set canvas size BEFORE loading game so LÖVE sees correct dimensions
+  setCanvasSize();
+
+  var s1 = document.createElement('script');
+  s1.src = 'game.js';
+  s1.onload = function() {
+    var s2 = document.createElement('script');
+    s2.src = 'love.js';
+    s2.onload = function() { applicationLoad(); };
+    document.body.appendChild(s2);
+  };
+  document.body.appendChild(s1);
+}
+
+
+// ============================================================
+// FULLSCREEN (browser mode only)
+// ============================================================
+function enterFullscreen() {
+  if (isNavigating) return;
+  var el = document.documentElement;
+  if (document.fullscreenElement || document.webkitFullscreenElement) return;
+  var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if (rfs) {
+    rfs.call(el).then(function() {
+      if (!isNavigating) { 
+        setTimeout(resizeCanvas, 100); 
+        setTimeout(resizeCanvas, 400); 
+      }
+    }).catch(function() {});
+  }
+}
+
+
+// ============================================================
+// iOS SCROLL TRICK (browser mode only)
+// ============================================================
+function iosHideBar() {
+  document.body.style.height = (window.innerHeight + 50) + 'px';
+  document.body.style.overflow = 'auto';
+  document.body.style.position = 'relative';
+  setTimeout(function() {
+    window.scrollTo(0, 1);
+    setTimeout(function() {
+      document.body.style.height = '100%';
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      resizeCanvas();
+    }, 300);
+  }, 100);
+}
+
+
+// ============================================================
+// CANVAS RESIZE
+// Both CSS display size AND canvas buffer size = viewport
+// ============================================================
+function resizeCanvas() {
+  if (isNavigating) return;
+  var c = document.getElementById("canvas");
+  if (!c) return;
+
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+
+  if (window.visualViewport) {
+    w = Math.round(window.visualViewport.width);
+    h = Math.round(window.visualViewport.height);
+  }
+
+  // CSS display size = fill viewport
+  c.style.setProperty('width', w + 'px', 'important');
+  c.style.setProperty('height', h + 'px', 'important');
+  c.style.setProperty('top', '0px', 'important');
+  c.style.setProperty('left', '0px', 'important');
+
+  // Canvas buffer size = viewport (so LÖVE sees real dimensions)
+  if (gameStarted) {
+    c.width = w;
+    c.height = h;
+  }
+}
+
+window.addEventListener("resize", function() { if (!isNavigating) resizeCanvas(); });
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', function() { if (!isNavigating) resizeCanvas(); });
+}
+window.addEventListener("orientationchange", function() {
+  if (isNavigating) return;
+  setTimeout(resizeCanvas, 100); setTimeout(resizeCanvas, 300); setTimeout(resizeCanvas, 600);
+});
+
+
+// ============================================================
+// TOUCH PREVENTION
+// ============================================================
+function pv(e) {
+  if (e.target && e.target.id === 'iosBackBtn') return;
+  if (gameStarted) e.preventDefault();
+}
+document.addEventListener('touchstart', pv, { passive: false });
+document.addEventListener('touchmove', pv, { passive: false });
+document.addEventListener('touchend', pv, { passive: false });
+document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
+document.addEventListener('gestureend', function(e) { e.preventDefault(); });
+document.addEventListener('contextmenu', function(e) { if (gameStarted) e.preventDefault(); });
+
+var lte = 0;
+document.addEventListener('touchend', function(e) {
+  var n = Date.now(); if (n - lte <= 300) e.preventDefault(); lte = n;
+}, { passive: false });
+
+window.addEventListener("keydown", function(e) {
+  if ([32, 37, 38, 39, 40].includes(e.keyCode)) e.preventDefault();
+});
+
+
+// ============================================================
+// AUDIO UNLOCK
+// ============================================================
+var au = false;
+var _globalAudioCtx = null;
+
+function unlockAudio() {
+  if (au) return;
+  try {
+    _globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var b = _globalAudioCtx.createBuffer(1, 1, 22050);
+    var s = _globalAudioCtx.createBufferSource();
+    s.buffer = b;
+    s.connect(_globalAudioCtx.destination);
+    s.start(0);
+    if (_globalAudioCtx.state === 'suspended') _globalAudioCtx.resume();
+  } catch(e) {}
+  au = true;
+}
+
+function resumeAllAudio() {
+  try {
+    if (_globalAudioCtx && _globalAudioCtx.state === 'suspended') {
+      _globalAudioCtx.resume();
+    }
+    if (typeof Module !== 'undefined' && Module.SDL2 && Module.SDL2.audioContext) {
+      if (Module.SDL2.audioContext.state === 'suspended') {
+        Module.SDL2.audioContext.resume();
+      }
+    }
+  } catch(e) {}
+}
+
+['touchstart', 'click'].forEach(function(evt) {
+  document.addEventListener(evt, resumeAllAudio, { once: false, passive: true });
+});
+
+
+// ============================================================
+// Visibility API — pause/resume when backgrounded
+// ============================================================
+document.addEventListener('visibilitychange', function() {
+  if (typeof Module === 'undefined') return;
+  try {
+    var sdlCtx = Module.SDL2 && Module.SDL2.audioContext;
+    if (document.hidden) {
+      if (sdlCtx && sdlCtx.state === 'running') sdlCtx.suspend();
+      if (_globalAudioCtx && _globalAudioCtx.state === 'running') _globalAudioCtx.suspend();
+    } else {
+      if (sdlCtx && sdlCtx.state === 'suspended') sdlCtx.resume();
+      if (_globalAudioCtx && _globalAudioCtx.state === 'suspended') _globalAudioCtx.resume();
+      if (gameStarted) {
+        setTimeout(resizeCanvas, 50);
+        setTimeout(resizeCanvas, 300);
+      }
+    }
+  } catch(e) {}
+});
+
+
+// ============================================================
+// MODULE + DOWNLOAD PROGRESS
+// ============================================================
+var Module = {
+  arguments: ["./game.love"],
+  INITIAL_MEMORY: 100663296,  
+  canvas: (function() { return document.getElementById("canvas"); })(),
+
+  preinitializedWebGLContext: _preGLContext,
+
+  print: function() {},
+  printErr: function() {},
+
+  setStatus: function(text) {
+    if (isNavigating) return;
+
+    if (!text) {
+      document.getElementById("pct").textContent = "100%";
+      document.getElementById("bar").style.width = "100%";
+      document.getElementById("dlInfo").textContent = "Starting game...";
+
+      var loader = document.getElementById("loader");
+      var canvas = document.getElementById("canvas");
+      if (loader) loader.classList.add("fadeOut");
+      if (canvas) {
+        canvas.style.visibility = "visible";
+        setCanvasSize();
+        resizeCanvas();
+        if (!isStandalone) enterFullscreen();
+      }
+
+      setTimeout(function() {
+        var splash = document.getElementById('splash');
+        var loader = document.getElementById('loader');
+        if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+        if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+      }, 1000);
+
+      return;
+    }
+
+    var m = text.match(/\((\d+)\/(\d+)\)/);
+    if (m) {
+      var loaded = parseInt(m[1]), total = parseInt(m[2]);
+      var p = Math.min(99, Math.round((loaded / total) * 100));
+      document.getElementById("bar").style.width = p + "%";
+      document.getElementById("pct").textContent = p + "%";
+      document.getElementById("dlInfo").textContent = (loaded/1048576).toFixed(1) + " / " + (total/1048576).toFixed(1) + " MB";
+    }
+  },
+
+  monitorRunDependencies: function(left) {
+    var t = this.totalDependencies || 0;
+    this.totalDependencies = Math.max(t, left);
+  }
+};
+
+function applicationLoad() { Love(Module); }
+
+resizeCanvas();
+</script>
+
+</body>
+</html>

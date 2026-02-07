@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GameHub">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0c29">
+
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon-D3iBf_58.png">
+
+<title>GameHub - Play Free Games Online</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* Critical CSS for initial paint */
+body { margin: 0; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); min-height: 100vh; }
+</style>
+  <script type="module" crossorigin src="/assets/index-Bazo-uYt.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/supabase-BtUICepX.js">
+  <link rel="stylesheet" crossorigin href="/assets/style-Y3Z_XBms.css">
+</head>
+
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">GAME<span>HUB</span></div>
+  <p class="tagline">Play Free Games Online - No Downloads Required!</p>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-number" id="gameCount">2</div>
+    <div class="stat-label">GAMES</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">∞</div>
+    <div class="stat-label">FUN</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">0</div>
+    <div class="stat-label">ADS</div>
+  </div>
+</div>
+
+<!-- PWA Install Section — ABOVE games, scrollable, not fixed -->
+<div id="pwa-section">
+  <div class="pwa-card">
+    <div class="pwa-header">
+      <div class="pwa-header-icon">📲</div>
+      <div class="pwa-header-title">INSTALL GAMEHUB APP</div>
+    </div>
+    <div class="pwa-desc" id="pwa-desc">Install the app for fullscreen gaming!</div>
+    <div class="pwa-steps" id="pwa-steps"></div>
+    <button class="pwa-btn" id="pwa-action-btn">INSTALL</button>
+    <div class="pwa-warning">⚠ Required for fullscreen on iOS</div>
+  </div>
+</div>
+
+<!-- Categories -->
+<div class="categories">
+  <span class="category-tag active" data-category="all">All Games</span>
+  <span class="category-tag" data-category="action">Action</span>
+  <span class="category-tag" data-category="puzzle">Puzzle</span>
+  <span class="category-tag" data-category="arcade">Arcade</span>
+  <span class="category-tag" data-category="educational">Educational</span>
+</div>
+
+<!-- Search -->
+<div class="search-container">
+  <input type="text" class="search-box" placeholder="🔍 Search games..." id="searchInput">
+</div>
+
+<!-- Games Grid -->
+<section class="games-section">
+  <h2 class="section-title">ALL GAMES</h2>
+  
+  <div class="games-grid" id="gamesGrid">
+
+    <div class="game-card" data-category="educational action" data-game-id="escape-protocol" data-game-name="ESCAPE PROTOCOL">
+      <span class="new-badge">NEW</span>
+      <div class="game-icon">🚀</div>
+      <div class="game-title">ESCAPE PROTOCOL</div>
+      <div class="game-category">Educational</div>
+    </div>
+
+    <div class="game-card" data-category="arcade" data-game-id="snake" data-game-name="SNAKE">
+      <span class="hot-badge">🔥 HOT</span>
+      <div class="game-icon">🐍</div>
+      <div class="game-title">SNAKE</div>
+      <div class="game-category">Arcade</div>
+    </div>
+
+    <div class="game-card" style="opacity: 0.4; cursor: not-allowed;" data-category="puzzle">
+      <div class="game-icon">🧩</div>
+      <div class="game-title">PUZZLE GAME</div>
+      <div class="game-category">Coming Soon</div>
+    </div>
+
+    <div class="game-card" style="opacity: 0.4; cursor: not-allowed;" data-category="action">
+      <div class="game-icon">⚔️</div>
+      <div class="game-title">BATTLE ARENA</div>
+      <div class="game-category">Coming Soon</div>
+    </div>
+
+    <div class="game-card" style="opacity: 0.4; cursor: not-allowed;" data-category="arcade">
+      <div class="game-icon">🏎️</div>
+      <div class="game-title">RACING</div>
+      <div class="game-category">Coming Soon</div>
+    </div>
+
+    <div class="game-card" style="opacity: 0.4; cursor: not-allowed;" data-category="puzzle">
+      <div class="game-icon">💎</div>
+      <div class="game-title">GEM MATCH</div>
+      <div class="game-category">Coming Soon</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>Made with care by Claude | <a href="#">About</a> | <a href="#">Contact</a></p>
+  <p style="margin-top: 10px;">© 2025 GameHub. All games run in your browser - no downloads needed</p>
+</footer>
+
+
+</body>
+</html>
